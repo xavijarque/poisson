@@ -4,6 +4,12 @@
 #include <sys/time.h>
 #include <string.h>
 #include <omp.h>
+
+#ifndef _OPENMP
+int omp_get_num_threads() { return 1; }
+int omp_get_thread_num() { return 0; }
+#endif
+
 struct twoPointers {
   double** pointers[2];
   double** rad;
