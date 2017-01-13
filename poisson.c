@@ -40,11 +40,10 @@ void writeMatrix(int N, struct twoPointers mydata) {
   fclose(fpout);
 }
 
-int jacobi(int N, struct twoPointers mydata, int nthreads) {
+int jacobi(int N, struct twoPointers mydata, int nthreads, int loops) {
   int i, r, c, t;
   int new = mydata.using;
   int old;
-  int loops = N * N * log(N);
   double epsilon = 0.0001;
   double comparison = 4.0;
   int count_it = 0;
@@ -83,12 +82,12 @@ int jacobi(int N, struct twoPointers mydata, int nthreads) {
   return count_it;
 }
 
-void seidel(int N, struct twoPointers mydata) {
+void seidel(int N, struct twoPointers mydata, int loops) {
   double spacing = 2.0/((double) N);
   int i, r, c;
   int new = mydata.using;
   int old;
-  int loops = N * log(N)/log(2) + 1;
+
   //printf("sei: spacing=%lf\n", spacing);
 
   for (i = 0; i < loops; i++) {
@@ -121,6 +120,7 @@ int main(int argc, char *argv[]) {
   int N = 3;
   int i;
   int nthreads;
+  int loops = N * N * log(N);
   int completedLoops = -1;
   #pragma omp parallel
   {
@@ -133,6 +133,7 @@ int main(int argc, char *argv[]) {
   char* funcname = "jac";
   if(argc >= 3) { funcname = argv[2]; }
   //printf("using function %s\n", funcname);
+  if (argc >=4){ loops =atoi(argv[3]);}
   
   struct twoPointers mydata;
   mydata.using = 0;
@@ -222,8 +223,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if(strcmp(funcname, "jac") == 0) { completedLoops = jacobi(N, mydata, nthreads); }
-  else{ if(strcmp(funcname, "sei") == 0) { seidel(N, mydata); } }
+  if(strcmp(funcname, "jac") == 0) { completedLoops = jacobi(N, mydata, nthreads, loops); }
+  else{ if(strcmp(funcname, "sei") == 0) { seidel(N, mydata, loops); } }
   for(i = 0; i < N; i++) {
     free(matrix[i]);
     free(matrix2[i]);
