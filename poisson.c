@@ -73,8 +73,6 @@ int jacobi(int N, struct twoPointers mydata, int nthreads, int loops) {
         val += mydata.pointers[old][r+1][c];
         val += mydata.pointers[old][r][c-1];
         val += mydata.pointers[old][r][c+1];
-        double x = r * 2.0/((double) (N-1)) - 1;
-        double y = c * 2.0/((double) (N-1)) - 1;
         val += mydata.rad[r][c];
         val = val * 0.25;
         mydata.pointers[new][r][c] = val;
@@ -126,14 +124,15 @@ int main(int argc, char *argv[]) {
   int N = 3;
   int i;
   int nthreads;
-  int loops = N * N * log(N);
   int completedLoops = -1;
+
   #pragma omp parallel
   {
     if(omp_get_thread_num()==0) { nthreads = omp_get_num_threads(); }
   } //end parallel
   if(argc >= 2) { N = atoi(argv[1]); }
   //printf("N=%i\n", N);
+  int loops = N * N * log(N);
   
   double spacing = 2.0/((double) N);
   char* funcname = "jac";
@@ -242,7 +241,11 @@ int main(int argc, char *argv[]) {
 
   gettimeofday(&t2, NULL);
   elapsedTime = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec)/1000000.0;
-  printf("%i %lf %i %s %i\n", nthreads, elapsedTime, N, funcname, completedLoops);
+  //printf("#nthreads, time, N, function, iterations, it/s, size\n");
+  double it_per_second = ((double) completedLoops)/elapsedTime;
+  double size = ((double)(N*N*sizeof(double) * 3))/1000;
+  double (jacobiMflops = 7.0*completedLoops*(N-2)*(N-2)/1000000.0) / elapsedTime;
+  printf("%i %lf %i %s %i, %lf, %lf %lf\n", nthreads, elapsedTime, N, funcname, completedLoops, it_per_second, size, jacobiMflops);
   return 0;
 }
 
